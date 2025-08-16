@@ -5,11 +5,9 @@ const authMiddleware = require('../../middleware/authMiddleware');
 
 router.route("/").get(async (req, res) => {
     try {
-        const { townId } = req.query; // Changed from req.body to req.query for GET requests
         
-         console.log(townId);
-        const town = await db.sql`SELECT * FROM town WHERE townId = ${townId}`;
-        
+
+
         // The actual data is in result.rows
         res.status(200).json({  town });
     } catch (error) {

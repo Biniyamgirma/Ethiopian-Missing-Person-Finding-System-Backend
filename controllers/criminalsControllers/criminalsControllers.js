@@ -1,6 +1,9 @@
 const db=require("../../database/createDataBase");
+async function insertCriminal(sql,params) {
 
-const updateCriminal = (req, res) => {
+  await db.sql(sql, ...params);
+}
+const updateCriminal = async(req, res) => {
     const { criminalId } = req.params;
     const { photo,
          firstName,
@@ -15,32 +18,20 @@ const updateCriminal = (req, res) => {
          fileNumber,
          policeStationId } = req.body;
     try {
-        const sql = `UPDATE criminal SET photo=?,
-        firstName=?,
-        middleName=?,
-        lastName=?,
-        faceColor=?,
-        hairColor=?,
-        height=?,
-        bodyType=?,
-        age=?,
-        gender=?,
-        fileNumber=?,
-        policeStationId=? WHERE criminalId=?`;
-        const params = [photo,
-            firstName,
-            middleName,
-            lastName,
-            faceColor,
-            hairColor,
-            height,
-            bodyType,
-            age,
-            gender,
-            fileNumber,
-            policeStationId,
-            criminalId];
-        db.prepare(sql).run(params);
+      await  db.sql`
+        UPDATE criminal SET photo=${photo},
+        firstName= ${firstName},
+        middleName=${middleName},
+        lastName=${lastName},
+        faceColor=${faceColor},
+        hairColor=${hairColor},
+        height=${height},
+        bodyType=${bodyType},
+        age=${age},
+        gender=${gender},
+        fileNumber=${fileNumber},
+        policeStationId=${policeStationId} WHERE criminalId=${criminalId}
+        `
         res.status(200).json({
             message: "Criminal updated successfully",
             criminalId,
@@ -64,10 +55,9 @@ const updateCriminal = (req, res) => {
         });
     }
 };
-const getAllCriminals = (req, res) => {
+const getAllCriminals = async(req, res) => {
     try {
-        const sql = `SELECT * FROM criminal`;
-        const criminals = db.prepare(sql).all();    
+        const criminals = db.sql(`SELECT * FROM criminal`);    
         res.status(200).json({
             message: "Criminals retrieved successfully",
             criminals
@@ -79,7 +69,7 @@ const getAllCriminals = (req, res) => {
         });
     }
 };
-const addCriminal = (req, res) => {
+const addCriminal = async(req, res) => {
     // Safely extract fields from req.body and photo file name from req.file if present
     const {
         firstName,
@@ -99,7 +89,9 @@ const addCriminal = (req, res) => {
     const photoFileName = req.file ? req.file.filename : null;
 
     try {
-        const sql = `INSERT INTO criminal (
+        
+      await db.sql(`
+            INSERT INTO criminal (
             photo,
             firstName,
             middleName,
@@ -112,22 +104,9 @@ const addCriminal = (req, res) => {
             gender,
             fileNumber,
             policeStationId
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`;
-        const params = [
-            photoFileName,
-            firstName,
-            middleName,
-            lastName,
-            faceColor,
-            hairColor,
-            height,
-            bodyType,
-            age,
-            gender,
-            fileNumber,
-            policeStationId
-        ];
-        db.prepare(sql).run(params);
+        ) VALUES (${photoFileName},${firstName},${middleName},${lastName},${faceColor},${hairColor},${height},${bodyType},${age},${gender},${fileNumber},${policeStationId})
+            `)
+
         res.status(200).json({
             message: "Criminal added successfully",
         });
@@ -139,11 +118,10 @@ const addCriminal = (req, res) => {
         });
     }
 }
-const deleteCriminal = (req, res) => {
+const deleteCriminal = async(req, res) => {
     const { criminalId } = req.params;
     try {
-        const sql = `DELETE FROM criminal WHERE criminalId=?`;
-        db.prepare(sql).run(criminalId);
+        db.sql`DELETE FROM criminal WHERE criminalId=${criminalId}`;
         res.status(200).json({
             message: "Criminal deleted successfully",
             criminalId
