@@ -1,14 +1,14 @@
 const db= require("../../database/createDataBase.js");
 
-function generateId(prefix, tableName, idColumn) {
+async function generateId(prefix, tableName, idColumn) {
     // 1. Get the highest existing ID from the database
-    const result = db.prepare(`
+    const result =await db.sql(`
         SELECT ${idColumn} 
         FROM ${tableName} 
         WHERE ${idColumn} LIKE '${prefix}%'
         ORDER BY CAST(SUBSTR(${idColumn}, 3) AS INTEGER) DESC
         LIMIT 1
-    `).get();
+    `);
 
     let nextNumber = 1; // Default if no records exist
 
