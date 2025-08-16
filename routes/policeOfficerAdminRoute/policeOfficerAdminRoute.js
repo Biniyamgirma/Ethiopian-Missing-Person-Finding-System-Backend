@@ -2,22 +2,17 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const db = require('../../database/createDataBase'); // Adjust the path to your database module
-// --- Multer Configuration ---
-// Set up storage engine
+const db = require('../../database/createDataBase'); 
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Ensure this path ('uploads/') exists relative to your server's root directory
-    // or provide an absolute path.
     cb(null, 'uploads/');
   },
   filename: function (req, file, cb) {
-    // Create a unique filename (e.g., fieldname-timestamp.ext)
     cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
   }
 });
 
-// Initialize upload middleware
 const upload = multer({
   storage: storage,
   limits: { fileSize: 10000000 }, // Optional: Limit file size (e.g., 10MB)
@@ -30,13 +25,10 @@ const upload = multer({
     if (mimetype && extname) {
       return cb(null, true);
     } else {
-      cb('Error: Images Only!'); // Or cb(new Error('Images Only!'));
+      cb('Error: Images Only!'); 
     }
   }
-}).single('logoFile'); // <-- Changed to 'logoFile' to match the key used in formData.append('logoFile', selectedLogoFile) in the frontend
-
-// --- Route Definition --
-
+}).single('logoFile'); 
 const { addPost,
         editPost,
         getAllPosts,
@@ -55,8 +47,7 @@ const { addPost,
     } = require('../../controllers/policeOfficerAdminController/policeOfficerAdminController');
 
 
-// routh for our homepage
-//@http request using get method
+
 router.route("/register").post(registerNewPoliceOfficer);
 router.route("/getPoliceStations").post(getPoliceStations);
 // router.route("/alertInTheArea").post(registerNewPoliceOfficer);

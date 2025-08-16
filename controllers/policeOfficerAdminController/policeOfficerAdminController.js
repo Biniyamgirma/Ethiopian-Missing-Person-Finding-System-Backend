@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 
 // @desc    Register a new police officer admin
 // @route   POST /api/adminside/register
-// @access  Private (should be protected with admin auth middleware)
+// @access  Private
 
 const registerNewPoliceOfficer = async (req, res) => {
     const {
@@ -31,10 +31,9 @@ const registerNewPoliceOfficer = async (req, res) => {
 
     try {
         // Check if police station exists
-        const stationCheck = db.prepare("SELECT policeStationId FROM policeStation WHERE policeStationId = ?");
-        const stationExists = stationCheck.get(policeStationId);
+        const stationCheck =await db.sql(`SELECT policeStationId FROM policeStation WHERE policeStationId = ${policeStationId}`);
         
-        if (!stationExists) {
+        if (!stationCheck) {
             return res.status(404).json({
                 success: false,
                 message: "Police station not found"
@@ -43,9 +42,10 @@ const registerNewPoliceOfficer = async (req, res) => {
             // Hash the password
             const saltRounds = 10;
             const passwordHash = await bcrypt.hash(passwordText, saltRounds);
-    
+            const policeOfficerId = require("../../helper/policeOfficer/generatePoliceOfficerId");
+            const id=policeOfficerId();
             // Insert into database
-            const statement = db.prepare(`
+            const statement =await db.sql(`
                 INSERT INTO policeOfficer (
                     policeOfficerId,
                     policeOfficerFname,
@@ -60,27 +60,8 @@ const registerNewPoliceOfficer = async (req, res) => {
                     passwordText,
                     role,
                     policeStationId
-                ) VALUES (? ,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (${id} ,${policeOfficerFname}, ${policeOfficerMname}, ${policeOfficerLname}, ${profilePicture}, ${policeOfficerRoleName}, ${policeOfficerStatus}, ${policeOfficerPhoneNumber}, ${policeOfficerGender}, ${policeOfficerBirthdate}, ${passwordHash}, ${role}, ${policeStationId});
             `);
-            const policeOfficerId = require("../../helper/policeOfficer/generatePoliceOfficerId");
-            const id=policeOfficerId();
-            const result = statement.run(
-                id,
-                policeOfficerFname,
-                policeOfficerMname,
-                policeOfficerLname,
-                profilePicture,
-                policeOfficerRoleName,
-                policeOfficerStatus,
-                policeOfficerPhoneNumber,
-                policeOfficerGender,
-                policeOfficerBirthdate,
-                passwordHash,
-                role,
-                policeStationId
-                
-            );
-    
             if (result.changes > 0) {
                 return res.status(201).json({
                     message: "Police officer registered successfully",
@@ -127,34 +108,19 @@ const updatePoliceOfficerInfo = async (req, res) => {
         const saltRounds = 10;
         const passwordHash = await bcrypt.hash(passwordText, saltRounds);
 
-        const statement = db.prepare(`UPDATE policeOfficer SET 
-            policeOfficerFname = ?,
-            policeOfficerMname = ?,
-            policeOfficerLname = ?,
-            profilePicture = ?, 
-            policeOfficerRoleName = ?,
-            policeOfficerStatus = ?,
-            policeOfficerPhoneNumber = ?,
-            passwordText = ?,
-            policeOfficerBirthdate = ?,
-            policeOfficerGender = ?,
-            policeStationId = ?
-            WHERE policeOfficerId = ?`);
-
-        const result = statement.run(
-            policeOfficerFname,
-            policeOfficerMname,
-            policeOfficerLname,
-            profilePicture,
-            policeOfficerRoleName,
-            policeOfficerStatus,
-            policeOfficerPhoneNumber,
-            passwordHash,
-            policeOfficerBirthdate,
-            policeOfficerGender,
-            policeStationId,
-            id  // This should be last to match the WHERE clause
-        );
+        const statement = await db.prepare(`UPDATE policeOfficer SET 
+            policeOfficerFname = ${policeOfficerFname},
+            policeOfficerMname = ${policeOfficerMname},
+            policeOfficerLname = ${policeOfficerLname}},
+            profilePicture = ${profilePicture}, 
+            policeOfficerRoleName = ${policeOfficerRoleName},
+            policeOfficerStatus = ${policeOfficerStatus},
+            policeOfficerPhoneNumber = ${policeOfficerPhoneNumber},
+            passwordText = ${passwordHash},
+            policeOfficerBirthdate = ${policeOfficerBirthdate},
+            policeOfficerGender = ${policeOfficerGender},
+            policeStationId = ${policeStationId}
+            WHERE policeOfficerId = ${id}`);
 
         if (result.changes > 0) {
             res.status(200).json({
@@ -178,7 +144,7 @@ const updatePoliceOfficerInfo = async (req, res) => {
 // //@route POST 
 // //@access point for know public
 
-const addSubPoliceStation = (req,res)=>{
+const addSubPoliceStation = async (req,res)=>{
     const rootId=1;
     const policeStationId = require("../../helper/policeOfficer/generatePoliceStationId");
     const id=policeStationId();
@@ -190,8 +156,7 @@ const addSubPoliceStation = (req,res)=>{
         const {nameOfPoliceStation,policeStationPhoneNumber,secPoliceStationPhoneNumber,townId,subCityId}=req.body;
         
 
-    const ourStatment = db.prepare("INSERT INTO policeStation(policeStationId,nameOfPoliceStation,policeStationPhoneNumber,secPoliceStationPhoneNumber,PoliceStationLogo,townId,subCityId,rootId) VALUES (?,?, ?, ?,?,?,?,?)")
-    const result = ourStatment.run(id,nameOfPoliceStation,policeStationPhoneNumber,secPoliceStationPhoneNumber,photoFileName,townId,subCityId,rootId);
+    const ourStatment =await db.sql(`INSERT INTO policeStation(policeStationId,nameOfPoliceStation,policeStationPhoneNumber,secPoliceStationPhoneNumber,PoliceStationLogo,townId,subCityId,rootId) VALUES (${id},${nameOfPoliceStation},${policeStationPhoneNumber},${secPoliceStationPhoneNumber},${photoFileName},${townId},${subCityId},${rootId})`)
     res.status(201);
     res.json({"message":"data inserted successfully"});
 } catch (error) {
@@ -207,7 +172,7 @@ const addSubPoliceStation = (req,res)=>{
 // //@route Post /api/police/message/sendmessage
 // //@access point for know public
 
-const sendMessage = (req, res) => {
+const sendMessage = async(req, res) => {
     try {
         const { sendersId, reciversId, message } = req.body;
         
@@ -217,19 +182,16 @@ const sendMessage = (req, res) => {
         }
 
         // Insert message
-        const insertStatement = db.prepare("INSERT INTO message (sendersId, reciversId, message) VALUES (?, ?, ?)");
-        const result = insertStatement.run(sendersId, reciversId, message);
+        const insertStatement =await db.sql(`INSERT INTO message (sendersId, reciversId, message) VALUES (${sendersId}, ${reciversId}, ${message})`);
 
         // Verify insertion
-        if (result.changes === 0) {
+        if (insertStatement.changes === 0) {
             return res.status(500).json({ error: "Failed to send message" });
         }
 
-        // Get the inserted message (fixed to query messages table instead of posts)
-        const lookupStatement = db.prepare("SELECT * FROM message WHERE id = ?");///this thing may cause an error so i should be very cearfull
-        const sentMessage = lookupStatement.get(result.lastInsertRowid);
+        const lookupStatement =await db.sql(`SELECT * FROM message WHERE id = ${insertStatement.lastInsertRowid}`);
 
-        if (!sentMessage) {
+        if (!lookupStatement) {
             return res.status(500).json({ error: "Message sent but could not be retrieved" });
         }
 
@@ -237,7 +199,7 @@ const sendMessage = (req, res) => {
         res.status(201).json({
             success: true,
             message: "Message sent successfully",
-            data: sentMessage
+            data: lookupStatement
         });
 
     } catch (error) {
@@ -249,7 +211,7 @@ const sendMessage = (req, res) => {
 // //@route POST /api/police/alert/areaalert
 // //@access point for know public
 
-const alertInTheArea = (req, res) => {
+const alertInTheArea = async(req, res) => {
     const { policeStationId } = req.body;
     
     // Validate townId is provided
@@ -260,16 +222,14 @@ const alertInTheArea = (req, res) => {
     }
 
     try {
-        // Get all alerts for the specified town
-        const lookupStatement = db.prepare(`
+        const lookupStatement =await db.sql(`
             SELECT * FROM alert 
-            WHERE localPoliceStationId = ? 
+            WHERE localPoliceStationId = ${policeStationId}
             ORDER BY createdAt DESC
         `);
-        const alerts = lookupStatement.all(townId);
-
+        
         // If no alerts found, return a message
-        if (alerts.length === 0) {
+        if (lookupStatement.length === 0) {
             return res.json({
                 message: "No active alerts in this area",
                 count: 0,
@@ -278,8 +238,8 @@ const alertInTheArea = (req, res) => {
         }
 
         res.json({
-            count: alerts.length,
-            data: alerts
+            count: lookupStatement.length,
+            data: lookupStatement
         });
 
     } catch (error) {
@@ -290,16 +250,16 @@ const alertInTheArea = (req, res) => {
     }
 };
 
-const postAlert =(req,res)=>{
+const postAlert =async(req,res)=>{
     const{policeStationId}= req.body;
     if(!policeStationId){
         return res.status(400).json({
-            error:"You Must Be a Member of amhara police force is required"
+            error:"You Must Be a Member of amhara police force"
         });
     }
     try {
-        const lookupStatement = db.prepare("SELECT * FROM alert WHERE postPoliceStationId = ? ")
-        const alertsInPost =lookupStatement.all(policeStationId)
+        const lookupStatement =await db.sql(`SELECT * FROM alert WHERE postPoliceStationId = ${policeStationId}`)
+        const alertsInPost =await lookupStatement;
         if(alertsInPost.length === 0){
             return res.json({
                 message:"No active alerts in the posts you added",
@@ -323,7 +283,7 @@ const postAlert =(req,res)=>{
 // //@desc alert the police station that added the post about possabil sight
 // //@route POST /api/police/postpolicestationalert
 // //@access point for know public
-const viewReportForSpecificPost = (req, res) => {
+const viewReportForSpecificPost =async (req, res) => {
     const { postId } = req.body;
 
     // Validate postId is provided
@@ -336,12 +296,12 @@ const viewReportForSpecificPost = (req, res) => {
 
     try {
         // Get all reports for the specified post
-        const lookupStatement = db.prepare(`
+        const lookupStatement =await db.sql(`
             SELECT * FROM report 
-            WHERE postId = ?
+            WHERE postId = ${postId}
             ORDER BY reportDate DESC
         `);
-        const reports = lookupStatement.all(postId);
+        const reports =await lookupStatement;
 
         // If no reports found
         if (reports.length === 0) {
@@ -367,7 +327,7 @@ const viewReportForSpecificPost = (req, res) => {
         });
     }
 };
-const getPoliceStations = (req, res) => {
+const getPoliceStations = async(req, res) => {
     const { rootId } = req.body;
     // Validate townId is provided
     console.log(rootId);
@@ -378,13 +338,15 @@ const getPoliceStations = (req, res) => {
     }
 
     try {
-        const lookupStatement = db.prepare(`
+        const lookupStatement =await db.sql(`
             SELECT policeStation.*, town.*
             FROM policeStation
             JOIN town ON policeStation.townId = town.townId
-            WHERE policeStation.rootId = ?
+            WHERE policeStation.rootId = ${rootId};
         `);
-        const stations = lookupStatement.all(rootId);
+        console.log(lookupStatement);
+        const stations = await lookupStatement;
+        console.log(stations);
 
         // If no stations found 
         if (stations.length === 0) {
@@ -409,7 +371,7 @@ const getPoliceStations = (req, res) => {
 //@desc get all police officer information in the database
 // //@route GET /api/police/getAllPoliceOfficer
 //@access point for know public
-const getAllPoliceOfficerInOurPoliceStation = (req, res) => {
+const getAllPoliceOfficerInOurPoliceStation =async (req, res) => {
     const { policeStationId } = req.body;
     // // Validate policeStationId is provided
     // console.log(policeStationId);
@@ -423,12 +385,12 @@ const getAllPoliceOfficerInOurPoliceStation = (req, res) => {
 
     try {
         // Get all officers for the specified police station
-        const statement = db.prepare(`
+        const statement =await db.sql(`
             SELECT *
             FROM policeOfficer 
-            WHERE policeStationId = ?
+            WHERE policeStationId = ${policeStationId}
         `);
-        const officers = statement.all(policeStationId);
+        const officers =await statement;
 
         // If no officers found
         if (officers.length === 0) {
@@ -457,7 +419,7 @@ const getAllPoliceOfficerInOurPoliceStation = (req, res) => {
 //@desc get all police station information in the database were we added the police station
 //@route GET /api/police/getAllPoliceStation
 //@access point for know public
-const getSpecificPoliceStationInfo = (req, res) => {
+const getSpecificPoliceStationInfo =async (req, res) => {
     const { id } = req.params;
 
     // Validate ID parameter
@@ -470,7 +432,7 @@ const getSpecificPoliceStationInfo = (req, res) => {
 
     try {
         // Get specific police station with selected columns
-        const statement = db.prepare(`
+        const statement =await db.sql(`
             SELECT 
                 nameOfPoliceStation,
                 policeStationPhoneNumber,
@@ -480,10 +442,10 @@ const getSpecificPoliceStationInfo = (req, res) => {
                 subCityId,
                 rootId
             FROM policeStation 
-            WHERE policeStationId = ?
+            WHERE policeStationId = ${id}
         `);
         
-        const station = statement.get(id);
+        const station =await statement;
 
         // If station not found
         if (!station) {
@@ -493,17 +455,13 @@ const getSpecificPoliceStationInfo = (req, res) => {
             });
         }
         const { nameOfPoliceStation, policeStationPhoneNumber, secPoliceStationPhoneNumber, policeStationLogo, townId, subCityId, rootId } = station;
-        const sqlTownTable ="SELECT * FROM town WHERE townId = ?";
-        const sqlSubCityTable ="SELECT subCityName FROM subCity WHERE subCityId = ?";
-        const sqlRootTable ="SELECT username FROM root WHERE rootId = ?";
-        // Prepare statements for town, subCity, and root
-        const townStatement = db.prepare(sqlTownTable);
-        const subCityStatement = db.prepare(sqlSubCityTable);
-        const rootStatement = db.prepare(sqlRootTable);
-        // Execute the statements to get town, subCity, and root data
-        const town = townStatement.get(townId);
-        const subCity = subCityStatement.get(subCityId);
-        const root = rootStatement.get(rootId);
+        const sqlTownTable =await db.sql`SELECT * FROM town WHERE townId = ${townId}`;
+        const sqlSubCityTable =await db.sql`SELECT subCityName FROM subCity WHERE subCityId = ${subCityId}`;
+        const sqlRootTable =await db.sql`SELECT username FROM root WHERE rootId = ${rootId}`;
+
+        const town =await sqlTownTable;
+        const subCity =await sqlSubCityTable;
+        const root =await sqlRootTable;
         // Return the police station data
         res.status(200).json({
             success: true,
@@ -525,7 +483,7 @@ const getSpecificPoliceStationInfo = (req, res) => {
 //@ get all posts which the police officer added in the database
 //@route GET /api/police/getAllPosts
 //@access point for know public
-const getAllPosts = (req, res) => {
+const getAllPosts = async(req, res) => {
     const { id } = req.params;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -540,16 +498,15 @@ const getAllPosts = (req, res) => {
     }
 
     try {
-        // Get total count with the same filters
-        const countStmt = db.prepare(`
+        const countStmt =await db.sql(`
             SELECT COUNT(*) as total 
             FROM post 
-            WHERE policeStationId = ? AND postStatus = 1
+            WHERE policeStationId = ${id} AND postStatus = 1
         `);
-        const { total } = countStmt.get(id);
+        const {total} = countStmt;
 
         // Get paginated posts
-        const statement = db.prepare(`
+        const statement =await db.sql(`
             SELECT 
                 postId,
                 townId,
@@ -564,12 +521,12 @@ const getAllPosts = (req, res) => {
                 imagePath,
                 createdAt
             FROM post 
-            WHERE policeStationId = ? AND postStatus = 1
+            WHERE policeStationId = ${id} AND postStatus = 1
             ORDER BY createdAt DESC
-            LIMIT ? OFFSET ?
+            LIMIT ${limit} OFFSET ${offset}
         `);
         
-        const posts = statement.all(id, limit, offset);
+        const posts =await statement;
 
         res.status(200).json({
             success: true,
@@ -592,7 +549,7 @@ const getAllPosts = (req, res) => {
 //@desc get spacific post information in the database
 //@route GET /api/police/getPosts:id
 //@access point for know public
-const getSpecificPost = (req, res) => {
+const getSpecificPost =async (req, res) => {
     const { id } = req.params;
 
     // Validate ID parameter
@@ -605,7 +562,7 @@ const getSpecificPost = (req, res) => {
 
     try {
         // Get specific post with selected columns
-        const statement = db.prepare(`
+        const statement =await db.sql(`
             SELECT 
                 postId,
                 townId,
@@ -624,10 +581,10 @@ const getSpecificPost = (req, res) => {
                 imageUrl,
                 created_at
             FROM posts 
-            WHERE postId = ?
+            WHERE postId = ${id}
         `);
         
-        const post = statement.get(id);
+        const post =await statement;
 
         // If post not found
         if (!post) {
@@ -654,7 +611,7 @@ const getSpecificPost = (req, res) => {
 //@desc add post to the database
 //@route POST /api/police/addPost
 //@access point for know public
-const addPost = (req, res) => {
+const addPost = async(req, res) => {
     const {
         townId,
         subCityId,
@@ -678,7 +635,8 @@ const addPost = (req, res) => {
         });
     }
     try {
-        const sql=`INSERT INTO post(
+        
+        const statement =await db.sql(`INSERT INTO post(
         townId,
         subCityId,
         postDescription,
@@ -692,9 +650,8 @@ const addPost = (req, res) => {
         policeStationId,
         postStatus,
         personStatus,
-        imageUrl) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-        const statement = db.prepare(sql);
-        const result = statement.run(townId,subCityId,postDescription,firstName,middleName,lastName,age,lastLocation,gender,policeOfficerId,policeStationId,postStatus,personStatus,imageUrl);
+        imageUrl) VALUES(${townId},${subCityId},${postDescription},${firstName},${middleName},${lastName},${age},${lastLocation},${gender},${policeOfficerId},${policeStationId},${postStatus},${personStatus},${imageUrl})`);
+        const result =await statement;
         if (result.changes > 0) {
             return res.status(201).json({
                 success: true,
@@ -735,13 +692,12 @@ const editPost = async (req, res) => {
         imageUrl
     } = req.body;
 
-    // Validate required fields
-    // if (!postId || isNaN(Number(postId))) {
-    //     return res.status(400).json({
-    //         success: false,
-    //         error: "Valid post ID is required"
-    //     });
-    // }
+    if (!postId || isNaN(Number(postId))) {
+        return res.status(400).json({
+            success: false,
+            error: "Valid post ID is required"
+        });
+    }
 
     if (!townId || !firstName || !lastName || !policeStationId || !postDescription) {
         return res.status(400).json({
@@ -752,8 +708,8 @@ const editPost = async (req, res) => {
 
     try {
         // First check if post exists
-        const checkStmt = db.prepare("SELECT postId FROM post WHERE postId = ?");
-        const existingPost = checkStmt.get(postId);
+        const checkStmt =await db.sql(`SELECT postId FROM post WHERE postId = ${postId}`);
+        const existingPost =await checkStmt;
 
         if (!existingPost) {
             return res.status(404).json({
@@ -763,42 +719,26 @@ const editPost = async (req, res) => {
         }
 
         // Update the post
-        const updateStmt = db.prepare(`
+        const updateStmt =await db.sql(`
             UPDATE posts SET
-                townId = ?,
-                subCityId = ?,
-                postDescription = ?,
-                firstName = ?,
-                middleName = ?,
-                lastName = ?,
-                age = ?,
-                lastLocation = ?,
-                gender = ?,
-                policeOfficerId = ?,
-                policeStationId = ?,
-                postStatus = ?,
-                personStatus = ?,
-                imageUrl = ?,
-            WHERE postId = ?
+                townId = ${townId},
+                subCityId = ${subCityId},
+                postDescription = ${postDescription},
+                firstName = ${firstName},
+                middleName = ${middleName},
+                lastName = ${lastName},
+                age = ${age},
+                lastLocation = ${lastLocation},
+                gender = ${gender},
+                policeOfficerId = ${policeOfficerId},
+                policeStationId = ${policeStationId},
+                postStatus = ${postStatus || 1},
+                personStatus = ${personStatus || 'unknown'},
+                imageUrl = ${imageUrl}
+            WHERE postId = ${postId};
         `);
 
-        const result = updateStmt.run(
-            townId,
-            subCityId,
-            postDescription,
-            firstName,
-            middleName,
-            lastName,
-            age,
-            lastLocation,
-            gender,
-            policeOfficerId,
-            policeStationId,
-            postStatus || 1, // Default to active if not provided
-            personStatus || 'unknown', // Default status
-            imageUrl,
-            postId
-        );
+        const result =await updateStmt;
 
         if (result.changes === 0) {
             return res.status(500).json({
@@ -808,8 +748,8 @@ const editPost = async (req, res) => {
         }
 
         // Get the updated post to return
-        const getStmt = db.prepare("SELECT * FROM posts WHERE postId = ?");
-        const updatedPost = getStmt.get(postId);
+        const getStmt =await db.sql(`SELECT * FROM posts WHERE postId = ${postId}`);
+        const updatedPost =await getStmt;
 
         res.status(200).json({
             success: true,
@@ -826,11 +766,11 @@ const editPost = async (req, res) => {
         });
     }
 };
-const getAllPoliceStationInfo = (req, res) => {
+const getAllPoliceStationInfo =async (req, res) => {
     try {
-        const statement = db.prepare("SELECT * FROM policeStation WHERE rootId = ?");
-        const rootId = req.user.rootId; // Assuming you have middleware to set req.user
-        const stations = statement.run(rootId);
+                const rootId = req.user.rootId; // Assuming you have middleware to set req.user
+        const statement =await db.sql(`SELECT * FROM policeStation WHERE rootId = ${rootId}`);
+        const stations =await statement;
 
         if (stations.length === 0) {
             return res.status(404).json({
@@ -855,7 +795,7 @@ const getAllPoliceStationInfo = (req, res) => {
     }
 };
 
-const deletePoliceStation = (req, res) => {
+const deletePoliceStation =async (req, res) => {
     const { policeStationId } = req.body;
 
     // Validate ID parameter
@@ -868,8 +808,8 @@ const deletePoliceStation = (req, res) => {
 
     try {
         // Delete the police station
-        const statement = db.prepare("DELETE FROM policeStation WHERE policeStationId = ?");
-        const result = statement.run(policeStationId);
+        const statement =await db.sql(`DELETE FROM policeStation WHERE policeStationId = ${policeStationId}`);
+        const result = await statement;
 
         if (result.changes === 0) {
             return res.status(404).json({
