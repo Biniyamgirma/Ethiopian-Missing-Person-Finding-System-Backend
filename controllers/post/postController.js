@@ -1,6 +1,7 @@
 const db = require("../../database/createDataBase");
 const authMiddleware = require('../../middleware/authMiddleware');
 const rbacMiddleware = require('../../middleware/rbacMiddleware');
+const { post } = require("../../routes/policeOfficerAdminRoute/policeOfficerAdminRoute");
  
 const addPost = async (req, res) => {
 
@@ -21,14 +22,17 @@ const addPost = async (req, res) => {
         const uploadedImagePath = req.file ? req.file.filename : null;
 
         // Insert the new post into the database
-        const result = db.prepare(`
+        const result =await db.sql(`
         INSERT INTO post (
         townId, subCityId, postDescription, 
         firstName,middleName, lastName, age, lastLocation,
         gender,policeOfficerId,policeStationId,
         postStatus,personStatus,imagePath)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(townId, subCityId, postDescription,firstName, middelName, lastName,age,lastLocation,gender ,policeOfficerId,policeStationId,postStatus,personStatus, uploadedImagePath); 
+        VALUES (${townId}, ${subCityId}, ${postDescription}, 
+        ${firstName},${middelName}, ${lastName}, ${age}, ${lastLocation},
+        ${gender},${policeOfficerId},${policeStationId},
+        ${postStatus},${personStatus},${uploadedImagePath})
+        `); 
     
         res.status(201).json({ message: "Post created successfully", postId: result.lastInsertRowid });
     } catch (error) {
@@ -42,9 +46,9 @@ const getAllPostInCity = async (req, res) => {
         // const userId = req.user.userId; // Assuming you have userId in the request object
     
         // Fetch all posts from the database
-        const posts = db.prepare(`
-            SELECT * FROM post WHERE townId = ? AND postStatus = 1;
-        `).all(townId);
+        const posts =await db.sql(`
+            SELECT * FROM post WHERE townId = ${townId} AND postStatus = 1;
+        `);
     
         res.status(200).json({ posts });
     } catch (error) {
@@ -55,10 +59,8 @@ const getAllPostInCity = async (req, res) => {
 const getAllPostInZone = async (req, res) => {
     try {
         const { zoneId } = req.body;
-        // const userId = req.user.userId; // Assuming you have userId in the request object
-    
-        // Fetch all posts from the database
-        const posts = db.prepare(`
+        
+        const posts =await db.sql(`
              SELECT 
                     p.*,
                     t.townName,
@@ -80,8 +82,8 @@ const getAllPostInZone = async (req, res) => {
                 LEFT JOIN 
                     policeStation ps ON p.policeStationId = ps.policeStationId
                 WHERE 
-                    r.zoneId = ? AND p.postStatus = 1
-        `).all(zoneId);
+                    r.zoneId = ${zoneId} AND p.postStatus = 1
+        `);
     
         res.status(200).json({ posts });
     } catch (error) {
@@ -95,7 +97,7 @@ const getAllPostInRegion = async (req, res) => {
         // const userId = req.user.userId; // Assuming you have userId in the request object
     
         // Fetch all posts from the database
-        const posts = db.prepare(`
+        const posts =await db.sql(`
             SELECT 
                     p.*,
                     t.townName,
@@ -117,9 +119,9 @@ const getAllPostInRegion = async (req, res) => {
                 LEFT JOIN 
                     policeStation ps ON p.policeStationId = ps.policeStationId
                 WHERE 
-                    r.regionId = ? AND p.postStatus = 1
+                    r.regionId = ${regionId} AND p.postStatus = 1
            
-        `).all(regionId);
+        `);
     
         res.status(200).json({ posts });
     } catch (error) {
@@ -134,7 +136,7 @@ const getAllPostInCountry = async (req, res) => {
         // const userId = req.user.userId; // Assuming you have userId in the request object
     
         // Fetch all posts from the database
-        const posts = db.prepare(`
+        const posts =await db.sql(`
            SELECT 
                     p.*,
                     t.townName,
@@ -156,9 +158,9 @@ const getAllPostInCountry = async (req, res) => {
                 LEFT JOIN 
                     policeStation ps ON p.policeStationId = ps.policeStationId
                 WHERE 
-                    r.countryId = ? AND p.postStatus = 1
+                    r.countryId = ${countryId} AND p.postStatus = 1
            
-        `).all(countryId);
+        `);
     
         res.status(200).json({ posts });
     } catch (error) {
@@ -170,13 +172,10 @@ const getAllPostInCountry = async (req, res) => {
 const addPostToZoneTable = async (req, res) => {
     try {
         const { zoneId, postId } = req.body;
-        // const userId = req.user.userId; // Assuming you have userId in the request object
-    
-        // Insert the new post into the database
-        const result = db.prepare(`
+        const result =await db.sql(`
             INSERT INTO zonePost (zoneId, postId)
-            VALUES (?, ?)
-        `).run(zoneId, postId); 
+            VALUES (${zoneId}, ${postId})
+        `); 
     
         res.status(201).json({ message: "Post added to zone successfully", postId: result.lastInsertRowid });
     } catch (error) {
@@ -188,14 +187,10 @@ const addPostToZoneTable = async (req, res) => {
 const addPostToRegionTable = async (req, res) => {
     try {
         const { regionId, postId } = req.body;
-        // const userId = req.user.userId; // Assuming you have userId in the request object
-    
-        // Insert the new post into the database
-        const result = db.prepare(`
+        const result =await db.sql(`
             INSERT INTO regionPost (regionId, postId)
-            VALUES (?, ?)
-        `).run(regionId, postId); 
-    
+            VALUES (${regionId}, ${postId})
+        `); 
         res.status(201).json({ message: "Post added to region successfully", postId: result.lastInsertRowid });
     } catch (error) {
         console.error("Error adding post to region:", error);
@@ -209,10 +204,10 @@ const addPostToCountryTable = async (req, res) => {
         // const userId = req.user.userId; // Assuming you have userId in the request object
     
         // Insert the new post into the database
-        const result = db.prepare(`
+        const result =await db.sql(`
             INSERT INTO countryPost (countryId, postId)
-            VALUES (?, ?)
-        `).run(countryId, postId); 
+            VALUES (${countryId}, ${postId})
+        `); 
     
         res.status(201).json({ message: "Post added to country successfully", postId: result.lastInsertRowid });
     } catch (error) {
@@ -236,16 +231,14 @@ const editPost = async (req, res) => {
             policeOfficerId,
             policeStationId,postStatus,personStatus} = req.body;
         // const userId = req.user.userId; // Assuming you have userId in the request object
-        const result = db.prepare(`
+        const result =await db.sql(`
             UPDATE post
-            SET townId = ?, subCityId = ?, postDescription = ?, 
-            firstName = ?, middleName = ?, lastName = ?, age = ?, 
-            lastLocation =? , gender = ?, policeOfficerId = ?,
-            policeStationId = ?, postStatus = ?, personStatus = ?
-            WHERE postId = ? ;
-        `).run(townId, subCityId, postDescription, firstName,
-            middleName, lastName, age, lastLocation,gender ,policeOfficerId,
-            policeStationId,postStatus,personStatus,postId);
+            SET townId = ${townId}, subCityId = ${subCityId}, postDescription = ${postDescription}, 
+            firstName = ${firstName}, middleName = ${middleName}, lastName = ${lastName}, age = ${age}, 
+            lastLocation = ${lastLocation} , gender = ${gender}, policeOfficerId = ${policeOfficerId},
+            policeStationId = ${policeStationId}, postStatus = ${postStatus}, personStatus = ${personStatus}
+            WHERE postId = ${postId} ;
+        `);
         if (result.changes === 0) {
             return res.status(404).json({ message: "Post not found" });
         }
@@ -261,19 +254,15 @@ const editPost = async (req, res) => {
 const deletePost = async (req, res) => {
     try {
         const { postId } = req.params;
-        // const userId = req.user.userId; // Assuming you have userId in the request object
-    
-        // Delete the post from the database
-
-        const result = db.prepare(`
-            DELETE FROM regionPost WHERE postId = ?
-        `).run(postId);
-        const result2 = db.prepare(`
-            DELETE FROM zonePost WHERE postId = ?
-        `).run(postId);
-        const result3 = db.prepare(`
-            DELETE FROM zonePost WHERE postId = ?
-        `).run(postId);
+        const result =await db.sql(`
+            DELETE FROM regionPost WHERE postId = ${postId};
+        `);
+        const result2 =await db.sql(`
+            DELETE FROM zonePost WHERE postId = ${postId};
+        `);
+        const result3 =await db.sql(`
+            DELETE FROM zonePost WHERE postId = ${postId}
+        `);
     
         // 
     
@@ -284,7 +273,7 @@ const deletePost = async (req, res) => {
     }
 }
 
-const getSpecificPost = (req, res) => {
+const getSpecificPost =async (req, res) => {
     const { id } = req.params;
 
     // Validate ID parameter
@@ -297,7 +286,7 @@ const getSpecificPost = (req, res) => {
 
     try {
         // Get specific post with selected columns
-        const statement = db.prepare(`
+        const statement =await db.sql(`
             SELECT 
                 postId,
                 townId,
@@ -316,10 +305,10 @@ const getSpecificPost = (req, res) => {
                 imageUrl,
                 created_at
             FROM posts 
-            WHERE postId = ?
+            WHERE postId = ${id}
         `);
         
-        const post = statement.get(id);
+        const post = statement;
 
         // If post not found
         if (!post) {
@@ -346,8 +335,7 @@ const getSpecificPost = (req, res) => {
 const cheackPostInZone = async (req, res) => {
     try {
         const { postId } = req.params;
-        const sql=`SELECT * FROM zonePost WHERE postId = ?`
-        const result = db.prepare(sql).get(postId);
+        const result =await db.sql(`SELECT * FROM zonePost WHERE postId = ${postId}`);
         if (result) {
             return res.status(200).json({ message: "Post found in zone",success:true });
         } else {
@@ -361,8 +349,7 @@ const cheackPostInZone = async (req, res) => {
 const cheackPostInRegion = async (req, res) => {
     try {
         const { postId } = req.params;
-        const sql=`SELECT * FROM regionPost WHERE postId = ?`
-        const result = db.prepare(sql).get(postId);
+        const result =await db.sql(`SELECT * FROM regionPost WHERE postId = ${postId}`);
         if (result) {
             return res.status(200).json({ message: "Post found in region",success:true });
         }else {
@@ -375,8 +362,7 @@ const cheackPostInRegion = async (req, res) => {
 const cheackPostInCountry = async (req, res) => {
     try {
         const { postId } = req.params;
-        const sql=`SELECT * FROM countryPost WHERE postId = ?`
-        const result = db.prepare(sql).get(postId);
+        const result =await db.sql(`SELECT * FROM countryPost WHERE postId = ${postId}`);
         if (result) {
             return res.status(200).json({ message: "Post found in country",success:true });
         }else {
@@ -394,9 +380,9 @@ const getPoliceStationPost = async (req, res) => {
         // const userId = req.user.userId; // Assuming you have userId in the request object
     
         // Fetch all posts from the database
-        const posts = db.prepare(`
-            SELECT * FROM post WHERE policeStationId = ?
-        `).all(policeStationId);
+        const posts =await db.sql(`
+            SELECT * FROM post WHERE policeStationId = ${policeStationId};
+        `);
     
         res.status(200).json({ posts });
     } catch (error) {
