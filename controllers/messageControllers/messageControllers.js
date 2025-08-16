@@ -5,12 +5,11 @@ const sendMessage = async (req, res) => {
         const { senderId, receiverId, message } = req.body;
 
         // Insert the new message into the database
-        const result = db.prepare(`
+        const result = await db.sql(`
             INSERT INTO message (sendersId, reciversId, message)
-            VALUES (?, ?, ?)
-        `).run(senderId, receiverId, message);
-
-        res.status(201).json({ message: "Message sent successfully", messageId: result.lastInsertRowid });
+            VALUES (${senderId}, ${receiverId}, ${message})
+            `)
+             res.status(201).json({ message: "Message sent successfully", messageId: result.lastInsertRowid });
     } catch (error) {
         console.error("Error sending message:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -21,9 +20,9 @@ const deleteMessage = async (req, res) => {
         const { messageId } = req.params;
 
         // Delete the message from the database
-        const result = db.prepare(`
+        const result = await db.sql(`
             DELETE FROM message WHERE messageId = ?
-        `).run(messageId);
+        `);
 
         // Check if the delete was successful
         if (result.changes === 0) {
@@ -43,28 +42,25 @@ const getMessages = async (req, res) => {
 
   try {
     // Prepare the SQL statement first
-    const stmt = db.prepare(`
+    const rows = await db.sql(`
       SELECT 
         m.messageId,
         m.message,
         m.sentAt,
         sender.policeStationId as senderId,
-        sender.nameOfPoliceStation as senderName, -- Assuming 'nameOfPoliceStation' is the correct column name as per frontend context
+        sender.nameOfPoliceStation as senderName, 
         sender.policeStationLogo as senderLogo,
         receiver.policeStationId as receiverId,
-        receiver.nameOfPoliceStation as receiverName, -- Assuming 'nameOfPoliceStation' is the correct column name
+        receiver.nameOfPoliceStation as receiverName, 
         receiver.policeStationLogo as receiverLogo
        FROM message m
        JOIN policeStation sender ON m.sendersId = sender.policeStationId
        JOIN policeStation receiver ON m.reciversId = receiver.policeStationId
-       WHERE (m.sendersId = ? AND m.reciversId = ?)
-       OR (m.sendersId = ? AND m.reciversId = ?)
+       WHERE (m.sendersId = ${senderId} AND m.reciversId = ${receiverId})
+       OR (m.sendersId = ${receiverId} AND m.reciversId = ${senderId})
        ORDER BY m.sentAt ASC
     `);
 
-    // Execute the prepared statement with parameters
-    // .all() is synchronous in better-sqlite3 and returns an array of rows
-    const rows = stmt.all(senderId, receiverId, receiverId, senderId);
 
     // Format the response
     const formattedMessages = rows.map(row => ({
@@ -103,19 +99,12 @@ const updateMessageStatus = async (req, res) => {
   const {senderId, receiverId} = req.params;
     try {
         // Update the message status in the database
-        const result = db.prepare(`
+        const result =await db.prepare(`
             UPDATE message 
-            SET isRead = ? 
-            WHERE reciversId = ? AND sendersId = ? AND isRead = 0;
-
-        `).run(1, receiverId, senderId);
+            SET isRead = ${1} 
+            WHERE reciversId = ${receiverId} AND sendersId = ${senderId} AND isRead = 0;
+        `);
         res.status(200).json({ message: "Message status updated successfully" });
-
-        // // Check if the update was successful
-        // if (result.changes === 0) {
-        //     throw new Error("Message not found or already updated");
-        //     return res.status(404).json({ message: "Message not found or already updated" });
-        // }
     } catch (error) {
         console.error("Error updating message status:", error);
         throw error; // Re-throw the error to be handled by the calling function
@@ -133,18 +122,13 @@ const getUnReadedMessagesNumber = async (req, res) => {
 
     try {
         // Prepare the SQL statement first
-        const stmt = db.prepare(`
+        const row =await db.sql(`
             SELECT COUNT(*) as unreadCount
             FROM message
-            WHERE reciversId = ? AND sendersId = ? AND isRead = 0
+            WHERE reciversId = ${receiverId} AND sendersId = ${senderId} AND isRead = 0
         `);
-
-        // Execute the prepared statement with parameters
-        const row = stmt.get(receiverId, senderId);
-
         res.json({
             success: true,
-            // Ensure unreadCount is 0 if no rows are found or row is undefined
             unreadCount: row ? row.unreadCount : 0
         });
     } catch (error) {
