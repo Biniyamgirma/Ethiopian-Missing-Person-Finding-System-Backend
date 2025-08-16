@@ -80,9 +80,8 @@ FROM
 JOIN 
     policeStation ps ON po.policeStationId = ps.policeStationId
 WHERE 
-    po.policeOfficerId = ?`;
-        const stmt = db.prepare(query);
-        const officer = stmt.get(policeOfficerId);
+    po.policeOfficerId = ${policeOfficerId}`;
+        const officer =await query;
         if (!officer) {
             return res.status(404).json({ message: "Police officer not found" });
         
@@ -95,12 +94,11 @@ WHERE
     }
 };
 
-const displayPoliceStationInfo = (req,res)=>{
+const displayPoliceStationInfo =async (req,res)=>{
     const {policeStationId} = req.params;
     try{
-        const sql = `SELECT * FROM policeStation WHERE policeStationId = ?`;
-        const stm = db.prepare(sql);
-        const data = stm.get(policeStationId);
+        const stm =await db.sql(`SELECT * FROM policeStation WHERE policeStationId = ${policeStationId}`);
+        const data =await stm;
         if(!data){
             return res.status(404).json({ message: "Police Station Not Found" });
         }

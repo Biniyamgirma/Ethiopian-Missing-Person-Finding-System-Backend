@@ -1,4 +1,5 @@
 const db = require("../../database/createDataBase");
+const { post } = require("../../routes/policeOfficerAdminRoute/policeOfficerAdminRoute");
 
 const addReport = async (req, res) => {
     try {
@@ -6,25 +7,26 @@ const addReport = async (req, res) => {
         const { postId,townId,subCityId,reportDescription,PoliceStationId,priority } = req.body;
 
         // Insert the new report into the database
-        const result =  db.prepare(`
+        const result =await  db.sql(`
             INSERT INTO report (postId, townId,subCityId,reportDescription,userId,PoliceStationId)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `).run(postId, townId, subCityId, reportDescription,userId, PoliceStationId);
+            VALUES (${post},${townId},${subCityId},${reportDescription},${userId},${PoliceStationId})
+        `)
         // Check if the insert was successful
         if (result.changes === 0) {
             return res.status(400).json({ message: "Failed to create report" });
         }
         // Fetch the newly created report
-        const postPoliceStationId =await db.prepare(`
-            SELECT policeStationId FROM post WHERE postId = ?
-        `).get(postId);
-        const id =  postPoliceStationId.policeStationId;
+        const postPoliceStationId =await db.sql(`
+            SELECT policeStationId FROM post WHERE postId = ${postId}
+        `);
+        const id = await postPoliceStationId.policeStationId;
         console.log(id);
         const sql = `
             INSERT INTO alert (postId,localPoliceStationId,postPoliceStationId,isRead,priority,reportId)
             VALUES (?, ?, ?, ?, ?, ?)
         `;
-        const alertResult =db.prepare(sql).run(postId, PoliceStationId, id, 0, priority, result.lastInsertRowid);
+        const alertResult = await db.sql(`INSERT INTO alert (postId,localPoliceStationId,postPoliceStationId,isRead,priority,reportId)
+            VALUES (${postId}, '${id}', '${PoliceStationId}', 0, ${priority}, ${result.lastInsertRowid})`);
         // Check if the alert insert was successful
         if (alertResult.changes === 0) {
             return res.status(400).json({ message: "Failed to create alert" });
@@ -39,9 +41,9 @@ const getAllReportsSpecificToPost = async (req, res) => {
     try {
         const { postId } = req.body;
         // Fetch all reports from the database
-        const reports = db.prepare(`
-            SELECT * FROM report WHERE postId = ?
-        `).all(postId);
+        const reports =await db.sql(`
+            SELECT * FROM report WHERE postId = ${post}
+        `);
 
         res.status(200).json({ reports });
     } catch (error) {
@@ -53,7 +55,7 @@ const getReportsSpecificToPoliceStation = async (req, res) => {
     try {
         const { policeStationId } = req.body;
         // Fetch all reports from the database
-        const reports = db.prepare(`
+        const reports =await db.sql(`
           SELECT 
     alert.*,
     report.*,
@@ -63,8 +65,8 @@ FROM alert
 INNER JOIN report ON alert.reportId = report.reportId
 INNER JOIN post ON report.postId = post.postId
 INNER JOIN policeStation ON alert.localPoliceStationId = policeStation.policeStationId
-WHERE alert.postPoliceStationId = ?
-        `).all(policeStationId);
+WHERE alert.postPoliceStationId = ${policeStationId}
+        `);
         res.status(200).json({count:reports.length, reports });
     } catch (error) {
         console.error("Error fetching reports:", error);
@@ -77,10 +79,10 @@ const updateReport = async (req, res) => {
         const { reportDescription } = req.body;
 
         // Update the report in the database
-        const result = db.prepare(`
+        const result =await db.sql(`
             UPDATE report
-            SET reportDescription = ?
-            WHERE reportId = ?
+            SET reportDescription = '${reportDescription}'
+            WHERE reportId = ${reportId}
         `).run(reportDescription, reportId);
 
         // Check if the update was successful
@@ -99,11 +101,11 @@ const markSingleReportAsRead = async (req, res) => {
         const { reportId } = req.params;
 
         // Update the report in the database
-        const result = db.prepare(`
+        const result =await db.sql(`
             UPDATE alert
             SET isRead = 1
-            WHERE reportId = ?
-        `).run(reportId);
+            WHERE reportId = ${reportId}
+        `);
 
         // Check if the update was successful
         if (result.changes === 0) {
@@ -121,11 +123,11 @@ const markAllReportsAsRead = async (req, res) => {
         const { policeStationId } = req.body;
 
         // Update the report in the database
-        const result = db.prepare(`
+        const result =await db.sql(`
             UPDATE alert
             SET isRead = 1
-            WHERE policeStationId = ?
-        `).run(policeStationId);
+            WHERE policeStationId = ${policeStationId}
+        `);
         // Check if the update was successful
         if (result.changes === 0) {
             return res.status(404).json({ message: "Reports not found" });
@@ -142,9 +144,9 @@ const deleteReport = async (req, res) => {
         const { reportId } = req.body;
 
         // Delete the report from the database
-        const result = db.prepare(`
-            DELETE FROM report WHERE reportId = ?
-        `).run(reportId);
+        const result =await db.sql(`
+            DELETE FROM report WHERE reportId = ${reportId}
+        `);
 
         // Check if the delete was successful
         if (result.changes === 0) {

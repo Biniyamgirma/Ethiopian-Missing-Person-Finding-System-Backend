@@ -10,8 +10,8 @@ const loginUser = async (req, res) => {
     }
 
     try {
-        const userStatement = db.prepare("SELECT * FROM users WHERE policeOfficer = ?");
-        const user = userStatement.get(policeOfficerId);
+        const userStatement =await db.sql(`SELECT * FROM users WHERE policeOfficer = ?`);
+        const user =await userStatement;
 
         if (!user) {
             return res.status(401).json({ message: "Invalid credentials" });
