@@ -1,0 +1,35 @@
+# Build results
+/build/
+/target/
+/dist/
+/bin/
+/.gradle/
+.project
+.classpath
+.settings
+.loadpath
+/out/
+
+# Specific IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Log files
+*.log
+
+# Dependency directories
+/node_modules/
+/bower_components/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.swp
+*~
+.nyc_output/
+.sass-cache/
+/uploads/
