@@ -1,10 +1,8 @@
 const express = require("express");
 const errorHandler = require("./middleware/errorHandler");
 
-const db=require("./database/createDataBase")
  require("dotenv").config();
 const app = express();
-const { generateToken, comparePassword } = require('./utils/jwtUtils');
 const port = process.env.PORT || 3004;
 const cors = require("cors");
 const path = require('path');

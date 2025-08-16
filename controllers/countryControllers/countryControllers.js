@@ -3,9 +3,8 @@ const db=require("../../database/createDataBase");
 
 const getAllRegion = async(req, res) => {
     try {
-        const sql = `SELECT * FROM region`;
         
-        let regions = await db.sql`${sql}`;
+        let regions = await db.sql`SELECT * FROM region`;
         res.status(200).json({
             message: "data fetched successfully",
             regions
@@ -21,7 +20,7 @@ const getAllRegion = async(req, res) => {
 const getSpecificZone = async(req, res) => {
     const { regionId } = req.params;
     try {
-        const zones =await db.sql`$SELECT * FROM zone WHERE regionId = ${regionId}`;
+        const zones = await db.sql`SELECT * FROM zone WHERE regionId=${regionId}`;
         res.status(200).json({
             message: "data fetched successfully",
             zones
