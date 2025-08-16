@@ -10,7 +10,7 @@ function generateId(prefix, tableName, idColumn) {
         LIMIT 1
     `).get();
 
-    let nextNumber = 1; // Default if no records exist
+    let nextNumber = 1; 
 
     // 2. If records exist, extract the number and increment
     if (result && result[idColumn]) {

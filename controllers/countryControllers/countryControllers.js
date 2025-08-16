@@ -1,10 +1,11 @@
 const db=require("../../database/createDataBase");
 
 
-const getAllRegion = (req, res) => {
+const getAllRegion = async(req, res) => {
     try {
         const sql = `SELECT * FROM region`;
-        const regions = db.prepare(sql).all();
+        
+        let regions = await db.sql`${sql}`;
         res.status(200).json({
             message: "data fetched successfully",
             regions
@@ -17,11 +18,10 @@ const getAllRegion = (req, res) => {
     }
 };
 
-const getSpecificZone = (req, res) => {
+const getSpecificZone = async(req, res) => {
     const { regionId } = req.params;
     try {
-        const sql = `SELECT * FROM zone WHERE regionId = ?`;
-        const zones = db.prepare(sql).all(regionId);
+        const zones =await db.sql`$SELECT * FROM zone WHERE regionId = ${regionId}`;
         res.status(200).json({
             message: "data fetched successfully",
             zones
@@ -33,11 +33,11 @@ const getSpecificZone = (req, res) => {
         });
     }
 };
-const getSpecificTown = (req, res) => {
+const getSpecificTown = async(req, res) => {
     const { zoneId } = req.params;
     try {
-        const sql = `SELECT * FROM town WHERE zoneId = ?`;
-        const towns = db.prepare(sql).all(zoneId);
+        
+        const towns =await db.sql`SELECT * FROM town WHERE zoneId = ${zoneId}`;
         res.status(200).json({
             message: "data fetched successfully",
             towns
@@ -49,11 +49,11 @@ const getSpecificTown = (req, res) => {
         });
     }
 };
-const getSpecificTownInfo = (req, res) => {
+const getSpecificTownInfo = async(req, res) => {
     const { townId } = req.params;
     try {
-        const sql = `SELECT * FROM town WHERE townId = ?`;
-        const town = db.prepare(sql).all(townId);
+        
+        const town =await db.sql`SELECT * FROM town WHERE townId = ${townId}`;
         res.status(200).json({
             message: "data fetched successfully",
             town
