@@ -2,10 +2,10 @@ const { verifyToken } = require('../utils/jwtUtils');
 
 // Define your role hierarchy (roles with higher indexes have more privileges)
 const roleHierarchy = {
-  'Town ': 1,
-  'Zone Admin': 2,
-  'Region Admin': 3,
-  'Root Admin':4
+  'Town': 1,
+  'ZoneAdmin': 2,
+  'RegionAdmin': 3,
+  'RootAdmin':4
 };
 
 const rbacMiddleware = (requiredRole) => {

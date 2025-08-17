@@ -18,6 +18,7 @@ const {addPost,
 } = require('../../controllers/post/postController');
 const multer = require('multer');
 const path = require('path');
+const authMiddleware = require('../../middleware/authMiddleware');
 
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
@@ -39,25 +40,25 @@ const fileFilter = (req, file, cb) => {
 };
 const upload = multer({ storage: storage, fileFilter: fileFilter });
 
-router.route("/addpost").post(upload.single('image'), addPost); // 'image' is the field name from frontend
-router.route("/city").post(getAllPostInCity);
-router.route("/zone").post(getAllPostInZone);
-router.route("/region").post(getAllPostInRegion);
-router.route("/country").post(getAllPostInCountry);
+router.route("/addpost").post(upload.single('image'),authMiddleware([1,2,3,4]), addPost); // 'image' is the field name from frontend
+router.route("/city").post(authMiddleware([1,2,3,4]),getAllPostInCity);
+router.route("/zone").post(authMiddleware([1,2,3,4]),getAllPostInZone);
+router.route("/region").post(authMiddleware([1,2,3,4]),getAllPostInRegion);
+router.route("/country").post(authMiddleware([1,2,3,4]),getAllPostInCountry);
 
-router.route("/policeStation/post").post(getPoliceStationPost);
-router.route("/cheackPostInZone/:postId").get(cheackPostInZone);
-router.route("/cheackPostInRegion/:postId").get(cheackPostInRegion);
+router.route("/policeStation/post").post(authMiddleware([1,2,3,4]),getPoliceStationPost);
+router.route("/cheackPostInZone/:postId").get(authMiddleware([1,2,3,4]),cheackPostInZone);
+router.route("/cheackPostInRegion/:postId").get(authMiddleware([1,2,3,4]),cheackPostInRegion);
 
 
-router.route("/addPostToZone").post(addPostToZoneTable);
-router.route("/addPostToRegion").post(addPostToRegionTable);
-router.route("/addPostToCountry").post(addPostToCountryTable); // Assuming this is the same as addPostToRegion
+router.route("/addPostToZone").post(authMiddleware([1,2,3,4]),addPostToZoneTable);
+router.route("/addPostToRegion").post(authMiddleware([1,2,3,4]),addPostToRegionTable);
+router.route("/addPostToCountry").post(authMiddleware([1,2,3,4]),addPostToCountryTable); // Assuming this is the same as addPostToRegion
 
-router.route("/getSpecificPost/:postId").get(getSpecificPost);
-router.route("/editPost/:postId").put(editPost);
-router.route("/deletePost/:postId").delete(deletePost);
-router.route("/cheackPostInCountry/:postId").get(cheackPostInCountry);
+router.route("/getSpecificPost/:postId").get(authMiddleware([1,2,3,4]),getSpecificPost);
+router.route("/editPost/:postId").put(authMiddleware([1,2,3,4]),editPost);
+router.route("/deletePost/:postId").delete(authMiddleware([1,2,3,4]),deletePost);
+router.route("/cheackPostInCountry/:postId").get(authMiddleware([1,2,3,4]),cheackPostInCountry);
 
 
 module.exports = router;

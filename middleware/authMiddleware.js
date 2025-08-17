@@ -13,6 +13,8 @@ const authMiddleware = (requiredRoles = []) => {
       // Verify token
       const decoded = verifyToken(token);
       req.user = decoded;
+      console.log(decoded);
+      console.log(requiredRoles);
 
       // Check if user has required role
       if (requiredRoles.length && !requiredRoles.includes(decoded.role)) {

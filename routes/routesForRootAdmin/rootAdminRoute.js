@@ -58,27 +58,26 @@ const {addSubPoliceStation}=require('../../controllers/policeOfficerAdminControl
 // base url /api/police/root
 
 //post methods
-router.post("/register-police-officer",upload.single('profilePicture'), registerPoliceOfficerAdmin);
-router.put("/police-officers/:id",upload.single('profilePicture'), updatePoliceOfficerInfo);
-router.route("/add-police-station").post(upload.single('logoFile'), addSubPoliceStation);
-router.route("/add-admin-user").post(promotUserToAdmin);
+router.post("/register-police-officer",upload.single('profilePicture'),authMiddleware([2,3,4]), registerPoliceOfficerAdmin);
+router.put("/police-officers/:id",upload.single('profilePicture'),authMiddleware([2,3,4]), updatePoliceOfficerInfo);
+router.route("/add-police-station").post(upload.single('logoFile'),authMiddleware([2,3,4]), addSubPoliceStation);
+router.route("/add-admin-user").post(authMiddleware([3,4]),promotUserToAdmin);
 //get route
 
-router.route("/get-all-police-officer").get(getAllPoliceOfficer);
-router.route("/get-all-police-officer-in-police-station/:id").get(getAllPoliceOfficerInPoliceStation);
-router.route("/get-all-police-station").get(getAllPoliceStationInfo)
-router.route("/update-police-station-info/:id").get(getSpecificPoliceStationInfo).put(updatePoliceStationInfo);
-router.route("/add-root-user").get(test);
-router.route("/add-role").get(addRole);
+router.route("/get-all-police-officer").get(authMiddleware([3,4]),getAllPoliceOfficer);
+router.route("/get-all-police-officer-in-police-station/:id").get(authMiddleware([2,3,4]),getAllPoliceOfficerInPoliceStation);
+router.route("/get-all-police-station").get(authMiddleware([1,2,3,4]),getAllPoliceStationInfo)
+router.route("/update-police-station-info/:id").get(authMiddleware([1,2,3,4]),getSpecificPoliceStationInfo).put(authMiddleware([3,4]),updatePoliceStationInfo);
+router.route("/add-root-user").get(authMiddleware([4]),test);
+router.route("/add-role").get(authMiddleware([2,3,4]),addRole);
 //put route
-router.route("/add-region").put(addRegion);
-router.route("/add-zone").put(addZone);
-router.route("/add-town").put(addTown);
-router.route("/add-subcity").put(addSubCity);
-// router.put("/police-officers/:id", upload, updatePoliceOfficerInfo); // Corrected: Apply middleware directly
+router.route("/add-region").put(authMiddleware([4]),addRegion);
+router.route("/add-zone").put(authMiddleware([3,4]),addZone);
+router.route("/add-town").put(authMiddleware([2,3,4]),addTown);
+router.route("/add-subcity").put(authMiddleware([1,2,3,4]),addSubCity);
 router.route("/update-admin-info/:id").put(updateAdminInfo);
 //delete route
-router.route("/delete-officer").delete(deletePoliceOfficer);
+router.route("/delete-officer").delete(authMiddleware([3,4]),deletePoliceOfficer);
 router.route("/").get((req,res)=>{
   res.status(200).json({message:"hello from root admin route"});
 });

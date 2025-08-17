@@ -36,7 +36,7 @@ router.post(
         const officer = result[0]; // Get first matching officer
         console.log(officer);
         const status1 = officer.policeOfficerStatus;
-        console.log(status1);
+        
 
         if (status1 === 1) {
             return res.status(401).json({ 
@@ -55,10 +55,9 @@ router.post(
 
         const payload = {
             policeOfficerId: officer.policeOfficerId,
-            role: officer.policeOfficerRoleName,
+            role: officer.role,
             policeStationId: officer.policeStationId,
         };
-
         const token = generateToken(payload);
         
         res.status(200).json({
