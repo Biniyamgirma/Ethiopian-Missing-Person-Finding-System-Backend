@@ -28,10 +28,10 @@ const addPost = async (req, res) => {
         firstName,middleName, lastName, age, lastLocation,
         gender,policeOfficerId,policeStationId,
         postStatus,personStatus,imagePath)
-        VALUES (${townId}, ${subCityId}, ${postDescription}, 
-        ${firstName},${middelName}, ${lastName}, ${age}, ${lastLocation},
-        ${gender},${policeOfficerId},${policeStationId},
-        ${postStatus},${personStatus},${uploadedImagePath})
+        VALUES (${townId}, ${subCityId}, '${postDescription}', 
+        '${firstName}','${middelName}', '${lastName}','${age}', '${lastLocation}',
+        '${gender}','${policeOfficerId}','${policeStationId}',
+        ${postStatus},'${personStatus}','${uploadedImagePath}')
         `); 
     
         res.status(201).json({ message: "Post created successfully", postId: result.lastInsertRowid });
@@ -233,10 +233,10 @@ const editPost = async (req, res) => {
         // const userId = req.user.userId; // Assuming you have userId in the request object
         const result =await db.sql(`
             UPDATE post
-            SET townId = ${townId}, subCityId = ${subCityId}, postDescription = ${postDescription}, 
-            firstName = ${firstName}, middleName = ${middleName}, lastName = ${lastName}, age = ${age}, 
-            lastLocation = ${lastLocation} , gender = ${gender}, policeOfficerId = ${policeOfficerId},
-            policeStationId = ${policeStationId}, postStatus = ${postStatus}, personStatus = ${personStatus}
+            SET townId = ${townId}, subCityId = ${subCityId}, postDescription = '${postDescription}', 
+            firstName = '${firstName}', middleName = '${middleName}', lastName = '${lastName}', age = '${age}', 
+            lastLocation = '${lastLocation}' , gender = '${gender}', policeOfficerId = '${policeOfficerId}',
+            policeStationId = '${policeStationId}', postStatus = ${postStatus}, personStatus = '${personStatus}'
             WHERE postId = ${postId} ;
         `);
         if (result.changes === 0) {
@@ -308,7 +308,7 @@ const getSpecificPost =async (req, res) => {
             WHERE postId = ${id}
         `);
         
-        const post = statement;
+        const post =await statement;
 
         // If post not found
         if (!post) {
@@ -381,7 +381,7 @@ const getPoliceStationPost = async (req, res) => {
     
         // Fetch all posts from the database
         const posts =await db.sql(`
-            SELECT * FROM post WHERE policeStationId = ${policeStationId};
+            SELECT * FROM post WHERE policeStationId = '${policeStationId}';
         `);
     
         res.status(200).json({ posts });

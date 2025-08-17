@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 
 const viewPostsInArea = async (req,res)=> {
     const { townId } = req.body;
-  const postInArea = await db.sql(`SELECT * FROM post WHERE area = ${area}`);
+  const postInArea = await db.sql(`SELECT * FROM post WHERE townId = ${townId}`);
         if (!postInArea) {
             console.error(err);
             return res.status(500).json({ error: "Internal server error" });
@@ -37,7 +37,8 @@ const normalUser=await db.sql(`SELECT * FROM normalUser WHERE id = ${userId}`);
 }
 const reportPost =async (req, res) => {
     const { postId, reportDescription, userId, subCityId,townId,policeStationId } = req.body;
-const report=await db.sql(`INSERT INTO report (postId, townId, subCityId, reportDescription, userId, policeStationId) VALUES (${postId}, ${townId}, ${subCityId}, ${reportDescription}, ${userId}, ${policeStationId}))`);
+
+const report=await db.sql(`INSERT INTO report (postId, townId, subCityId, reportDescription, userId, policeStationId) VALUES (${postId}, ${townId}, ${subCityId}, '${reportDescription}', ${userId}, '${policeStationId}'))`);
        
 if (!report) {
             console.error(err);

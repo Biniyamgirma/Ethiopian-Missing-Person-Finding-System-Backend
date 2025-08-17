@@ -28,7 +28,9 @@ app.use("/api/criminals",require("./routes/criminalsRoute/criminalsRoute"));
 app.use("/api/notification",require("./routes/notificationRoute/notificationRoute"));
 
 app.use("/api/country",require("./routes/countryRoute/countryRoute"));
-
+app.get('/',(req,res)=>{
+    res.status(200).json({message:"works"})
+})
 app.use("/api/test",require("./routes/test/routeTest"));
 app.use(errorHandler);
 

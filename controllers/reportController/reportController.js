@@ -9,7 +9,7 @@ const addReport = async (req, res) => {
         // Insert the new report into the database
         const result =await  db.sql(`
             INSERT INTO report (postId, townId,subCityId,reportDescription,userId,PoliceStationId)
-            VALUES (${post},${townId},${subCityId},${reportDescription},${userId},${PoliceStationId})
+            VALUES (${post},${townId},${subCityId},'${reportDescription}',${userId},'${PoliceStationId}')
         `)
         // Check if the insert was successful
         if (result.changes === 0) {
@@ -20,11 +20,6 @@ const addReport = async (req, res) => {
             SELECT policeStationId FROM post WHERE postId = ${postId}
         `);
         const id = await postPoliceStationId.policeStationId;
-        console.log(id);
-        const sql = `
-            INSERT INTO alert (postId,localPoliceStationId,postPoliceStationId,isRead,priority,reportId)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `;
         const alertResult = await db.sql(`INSERT INTO alert (postId,localPoliceStationId,postPoliceStationId,isRead,priority,reportId)
             VALUES (${postId}, '${id}', '${PoliceStationId}', 0, ${priority}, ${result.lastInsertRowid})`);
         // Check if the alert insert was successful
@@ -42,7 +37,7 @@ const getAllReportsSpecificToPost = async (req, res) => {
         const { postId } = req.body;
         // Fetch all reports from the database
         const reports =await db.sql(`
-            SELECT * FROM report WHERE postId = ${post}
+            SELECT * FROM report WHERE postId = ${postId}
         `);
 
         res.status(200).json({ reports });
@@ -65,7 +60,7 @@ FROM alert
 INNER JOIN report ON alert.reportId = report.reportId
 INNER JOIN post ON report.postId = post.postId
 INNER JOIN policeStation ON alert.localPoliceStationId = policeStation.policeStationId
-WHERE alert.postPoliceStationId = ${policeStationId}
+WHERE alert.postPoliceStationId = '${policeStationId}'
         `);
         res.status(200).json({count:reports.length, reports });
     } catch (error) {
@@ -83,7 +78,7 @@ const updateReport = async (req, res) => {
             UPDATE report
             SET reportDescription = '${reportDescription}'
             WHERE reportId = ${reportId}
-        `).run(reportDescription, reportId);
+        `);
 
         // Check if the update was successful
         if (result.changes === 0) {
@@ -126,7 +121,7 @@ const markAllReportsAsRead = async (req, res) => {
         const result =await db.sql(`
             UPDATE alert
             SET isRead = 1
-            WHERE policeStationId = ${policeStationId}
+            WHERE policeStationId = '${policeStationId}'
         `);
         // Check if the update was successful
         if (result.changes === 0) {
