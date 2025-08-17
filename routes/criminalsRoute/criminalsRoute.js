@@ -33,9 +33,9 @@ const {updateCriminal,
     getAllCriminals,
     addCriminal,
     deleteCriminal} = require("../../controllers/criminalsControllers/criminalsControllers");
-router.put("/updateCriminal/:criminalId",authMiddleware([1,2,3,4]), updateCriminal); // Assuming updateCriminal might also need multer if it handles file uploads
-router.get("/getAllCriminals",authMiddleware([1,2,3,4]), getAllCriminals);
-router.post("/addCriminal", upload,authMiddleware([1,2,3,4]), addCriminal); // Correctly apply 'upload' middleware here
-router.delete("/deleteCriminal/:criminalId",authMiddleware([1,2,3,4]), deleteCriminal);
+router.put("/updateCriminal/:criminalId", updateCriminal); // Assuming updateCriminal might also need multer if it handles file uploads
+router.get("/getAllCriminals", getAllCriminals);
+router.post("/addCriminal", upload, addCriminal); // Correctly apply 'upload' middleware here
+router.delete("/deleteCriminal/:criminalId", deleteCriminal);
 
 module.exports = router;
