@@ -7,7 +7,7 @@ const sendMessage = async (req, res) => {
         // Insert the new message into the database
         const result = await db.sql(`
             INSERT INTO message (sendersId, reciversId, message)
-            VALUES (${senderId}, ${receiverId}, ${message})
+            VALUES ('${senderId}', '${receiverId}', '${message}')
             `)
              res.status(201).json({ message: "Message sent successfully", messageId: result.lastInsertRowid });
     } catch (error) {
@@ -21,7 +21,7 @@ const deleteMessage = async (req, res) => {
 
         // Delete the message from the database
         const result = await db.sql(`
-            DELETE FROM message WHERE messageId = ?
+            DELETE FROM message WHERE messageId = ${messageId}
         `);
 
         // Check if the delete was successful
@@ -56,8 +56,8 @@ const getMessages = async (req, res) => {
        FROM message m
        JOIN policeStation sender ON m.sendersId = sender.policeStationId
        JOIN policeStation receiver ON m.reciversId = receiver.policeStationId
-       WHERE (m.sendersId = ${senderId} AND m.reciversId = ${receiverId})
-       OR (m.sendersId = ${receiverId} AND m.reciversId = ${senderId})
+       WHERE (m.sendersId = '${senderId}' AND m.reciversId = '${receiverId}')
+       OR (m.sendersId = '${receiverId}' AND m.reciversId = '${senderId}')
        ORDER BY m.sentAt ASC
     `);
 
@@ -79,7 +79,7 @@ const getMessages = async (req, res) => {
       }
     }));
     
-    res.json({
+    res.status(200).json({
       success: true,
       data: formattedMessages,
       count: formattedMessages.length
@@ -99,10 +99,10 @@ const updateMessageStatus = async (req, res) => {
   const {senderId, receiverId} = req.params;
     try {
         // Update the message status in the database
-        const result =await db.prepare(`
+        const result =await db.sql(`
             UPDATE message 
             SET isRead = ${1} 
-            WHERE reciversId = ${receiverId} AND sendersId = ${senderId} AND isRead = 0;
+            WHERE reciversId = '${receiverId}' AND sendersId = '${senderId}' AND isRead = 0;
         `);
         res.status(200).json({ message: "Message status updated successfully" });
     } catch (error) {
@@ -125,7 +125,7 @@ const getUnReadedMessagesNumber = async (req, res) => {
         const row =await db.sql(`
             SELECT COUNT(*) as unreadCount
             FROM message
-            WHERE reciversId = ${receiverId} AND sendersId = ${senderId} AND isRead = 0
+            WHERE reciversId = '${receiverId}' AND sendersId = '${senderId}' AND isRead = 0
         `);
         res.json({
             success: true,

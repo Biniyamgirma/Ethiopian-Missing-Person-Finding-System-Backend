@@ -1441,10 +1441,10 @@ const getAllPoliceOfficerInPoliceStation =async (req, res) => {
 //@desc get all police station information in the database
 //@route GET http://localhost:4023/api/police/root/get-all-police-station
 //@access point for know public
-const getAllPoliceStationInfo = (req, res) => {
+const getAllPoliceStationInfo =async (req, res) => {
     try {
-        const ourStatment = db.prepare("SELECT * FROM policeStation");
-        const result = ourStatment.all();
+        const ourStatment =await db.sql("SELECT * FROM policeStation");
+        const result = ourStatment;
         res.status(200).json({
             success: true,
             count: result.length,

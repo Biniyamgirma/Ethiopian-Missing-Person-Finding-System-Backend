@@ -35,9 +35,7 @@ const upload = multer({
 }); // <-- Changed to 'logoFile' to match the key used in formData.append('logoFile', selectedLogoFile) in the frontend
 
 // --- Route Definition --
-const db = require("../../database/createDataBase");
 const authMiddleware = require('../../middleware/authMiddleware');
-const rbacMiddleware = require('../../middleware/rbacMiddleware');
 const {getAllPoliceStationInfo,
   updatePoliceStationInfo,
   deletePoliceOfficer,

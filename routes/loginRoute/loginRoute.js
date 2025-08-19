@@ -22,9 +22,8 @@ router.post(
     }
 
     const { policeOfficerId, password } = req.body;
-
+    console.log("request body",policeOfficerId, password);
     try {
-        // Use parameterized query instead of string interpolation
         const result = await db.sql(
             `SELECT po.*, ps.* 
              FROM policeOfficer po
@@ -32,6 +31,7 @@ router.post(
              WHERE po.policeOfficerId = '${policeOfficerId}'`,
             
         );
+        console.log("result",result);
 
         const officer = result[0]; // Get first matching officer
         console.log(officer);

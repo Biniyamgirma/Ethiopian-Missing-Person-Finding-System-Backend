@@ -57,7 +57,7 @@ const updateCriminal = async(req, res) => {
 };
 const getAllCriminals = async(req, res) => {
     try {
-        const criminals = db.sql(`SELECT * FROM criminal`);    
+        const criminals =await db.sql(`SELECT * FROM criminal`);    
         res.status(200).json({
             message: "Criminals retrieved successfully",
             criminals
