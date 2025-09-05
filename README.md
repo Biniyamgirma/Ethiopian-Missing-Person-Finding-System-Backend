@@ -60,11 +60,11 @@ Follow these instructions to get a copy of the project up and running on your lo
     # Port for the server to run on
     PORT=3004
 
-    # Your MongoDB connection string
-    MONGO_URI=mongodb+srv://<user>:<password>@<cluster-url>/<database-name>?retryWrites=true&w=majority
+    # Your Sqlite cloud connection string
+   
 
     # JWT Secret for signing authentication tokens
-    JWT_SECRET=a_very_strong_and_long_secret_key_for_security
+  
     ```
 
 4.  **Run the server:**
