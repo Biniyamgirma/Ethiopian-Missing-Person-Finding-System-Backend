@@ -3,8 +3,8 @@ const db = require("../database/createDataBase.js");
 const sendDailyRequests = async () => {
     try {
         // fetch users 
-        const users = await db.sql(`SELECT * FROM policeOfficer LIMIT 10`);
-        users = users || []; 
+    const data = await db.sql(`SELECT * FROM region LIMIT 10`);
+    console.log("Daily request sent. Fetched data:", data);
     }catch (error) {
         console.error("Error sending daily requests:", error);
     }

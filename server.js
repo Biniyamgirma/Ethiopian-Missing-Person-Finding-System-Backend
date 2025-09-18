@@ -35,8 +35,10 @@ app.use("/api/country",require("./routes/countryRoute/countryRoute"));
 app.use("/api/test",require("./routes/test/routeTest"));
 app.use(errorHandler);
 
-// const sendDailyRequests = require("./utils/requestSenderEveryDay.js");
-// setInterval(sendDailyRequests, 12*60*60*1000); // 12 hours in milliseconds
+const sendDailyRequests = require("./utils/requestSenderEveryDay.js");
+setInterval(async()=>{
+   await sendDailyRequests();
+},5*60*60*1000); // 12 hours in milliseconds
 
 app.listen(port,()=>{
     console.log(`server is running on port ${port}`);
