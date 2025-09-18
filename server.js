@@ -1,6 +1,6 @@
 const express = require("express");
 const errorHandler = require("./middleware/errorHandler");
-
+const db = require("./database/createDataBase.js");
  require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 3004;
@@ -33,7 +33,8 @@ app.use("/api/notification",require("./routes/notificationRoute/notificationRout
 
 app.use("/api/country",require("./routes/countryRoute/countryRoute"));
 app.get('/',(req,res)=>{
-    res.status(200).json({message:"works"})
+    const result = db.testConnection();
+    res.status(200).json({message:"works", connectionResult:result});
 })
 app.use("/api/test",require("./routes/test/routeTest"));
 app.use(errorHandler);
