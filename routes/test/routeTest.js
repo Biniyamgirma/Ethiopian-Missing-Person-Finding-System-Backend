@@ -2,8 +2,16 @@ const express = require('express');
 const router = express.Router();
 const db = require("../../database/createDataBase");
 const authMiddleware = require('../../middleware/authMiddleware');
-const rbacMiddleware = require('../../middleware/rbacMiddleware');
 
+router.route("/dbTest").get(async (req, res) => {
+    try {
+        const result = await db.sql(`SELECT * FROM region LIMIT 10`);  
+        res.status(200).json({ message: "DB test works fine", data: result });
+    } catch (error) {
+        console.error("Error fetching posts:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 
 router.route("/").get(async (req, res) => {
     try {

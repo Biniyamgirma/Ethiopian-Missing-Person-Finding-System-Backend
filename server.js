@@ -32,15 +32,11 @@ app.use("/api/criminals",require("./routes/criminalsRoute/criminalsRoute"));
 app.use("/api/notification",require("./routes/notificationRoute/notificationRoute"));
 
 app.use("/api/country",require("./routes/countryRoute/countryRoute"));
-app.get('/',(req,res)=>{
-    const result = db.testConnection();
-    res.status(200).json({message:"works", connectionResult:result});
-})
 app.use("/api/test",require("./routes/test/routeTest"));
 app.use(errorHandler);
 
-const sendDailyRequests = require("./utils/requestSenderEveryDay.js");
-setInterval(sendDailyRequests, 12*60*60*1000); // 12 hours in milliseconds
+// const sendDailyRequests = require("./utils/requestSenderEveryDay.js");
+// setInterval(sendDailyRequests, 12*60*60*1000); // 12 hours in milliseconds
 
 app.listen(port,()=>{
     console.log(`server is running on port ${port}`);
